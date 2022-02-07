@@ -1,21 +1,21 @@
 use std::rc::Rc;
 
 pub struct Stack<T> {
-    item: Option<Rc<Item<T>>>,
+    node: Option<Rc<Node<T>>>,
 } 
 
-struct Item<T> {
+struct Node<T> {
     value: T,
-    prev: Stack<T>,
+    prev: Option<Rc<Node<T>>>,
 }
 
-impl<T> Item<T> {
-    fn new(value: T, prev: Stack<T>) -> Self {
+impl<T> Node<T> {
+    fn new(value: T, prev: Option<Rc<Node<T>>>) -> Self {
         Self { value, prev }
     }
 }
 
-impl<T: Clone> Clone for Item<T> {
+impl<T: Clone> Clone for Node<T> {
     fn clone(&self) -> Self {
         Self { value: self.value.clone(), prev: self.prev.clone() }
     }
@@ -23,32 +23,30 @@ impl<T: Clone> Clone for Item<T> {
 
 impl<T> Clone for Stack<T> {
     fn clone(&self) -> Self {
-        Self{ item: self.item.clone() }
+        Self{ node: self.node.clone() }
     }
 }
 
 impl<T> Stack<T> {
     pub fn new() -> Self {
-        Self{item: None}
+        Self{node: None}
     }
     
     pub fn peek(&self) -> Option<&T> {
-        self.item.as_ref().map(|rc| &rc.value)
+        self.node.as_ref().map(|rc| &rc.value)
     }
 
     pub fn push(&mut self, value: T) {
-        let this = Self{ item: self.item.take() };
-        self.item = Some(Rc::new(Item::new(value, this)));
+        self.node = Some(Rc::new(Node::new(value, self.node.take())));
     }
 }
 
 impl<T: Clone> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
-        let this = Self{item: self.item.take()};
-
-        this.item.map(|rc| {
+        self.node.take()
+        .map(|rc| {
             let item = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
-            *self = item.prev;
+            self.node = item.prev;
             item.value
         })
     }
