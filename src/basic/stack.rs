@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 pub struct Stack<T> {
-    node: Option<Rc<Node<T>>>,
+    cur: Option<Rc<Node<T>>>,
 } 
 
 struct Node<T> {
@@ -23,31 +23,31 @@ impl<T: Clone> Clone for Node<T> {
 
 impl<T> Clone for Stack<T> {
     fn clone(&self) -> Self {
-        Self{ node: self.node.clone() }
+        Self{ cur: self.cur.clone() }
     }
 }
 
 impl<T> Stack<T> {
     pub fn new() -> Self {
-        Self{node: None}
+        Self{cur: None}
     }
     
     pub fn peek(&self) -> Option<&T> {
-        self.node.as_ref().map(|rc| &rc.value)
+        self.cur.as_ref().map(|rc| &rc.value)
     }
 
     pub fn push(&mut self, value: T) {
-        self.node = Some(Rc::new(Node::new(value, self.node.take())));
+        self.cur = Some(Rc::new(Node::new(value, self.cur.take())));
     }
 }
 
 impl<T: Clone> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
-        self.node.take()
+        self.cur.take()
         .map(|rc| {
-            let item = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
-            self.node = item.prev;
-            item.value
+            let top = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
+            self.cur = top.prev;
+            top.value
         })
     }
 }
