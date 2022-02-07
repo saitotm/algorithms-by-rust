@@ -31,11 +31,7 @@ impl<T> Stack<T> {
     }
     
     pub fn peek(&self) -> Option<&T> {
-        if let Some(rc) = &self.0 {
-            Some(&rc.value)
-        } else {
-            None
-        }
+        self.0.as_ref().map(|rc| &rc.value)
     }
 
     pub fn push(&mut self, value: T) {
@@ -47,13 +43,12 @@ impl<T> Stack<T> {
 impl<T: Clone> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
         let this = Self(self.0.take());
-        if let Some(rc) = this.0 {
+
+        this.0.map(|rc| {
             let item = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
             *self = item.prev;
-            Some(item.value)
-        } else {
-            None
-        }
+            item.value
+        })
     }
 }
 
