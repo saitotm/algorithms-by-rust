@@ -21,18 +21,21 @@ impl<T> Stack<T> {
         }
     }
 
-    pub fn push(self, value: T) -> Self {
-        Self(Some(Rc::new((value, self))))
+    pub fn push(&mut self, value: T) {
+        let this = Self(self.0.take());
+        self.0 = Some(Rc::new((value, this)));
     }
 }
 
 impl<T: Clone> Stack<T> {
-    pub fn pop(self) -> (Self, Option<T>) {
-        if let Some(rc) = self.0 {
+    pub fn pop(&mut self) -> Option<T> {
+        let this = Self(self.0.take());
+        if let Some(rc) = this.0 {
             let (head, tail) = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
-            (tail, Some(head))
+            *self = tail;
+            Some(head)
         } else {
-            (Self(None), None)
+            None
         }
     }
 }
@@ -43,24 +46,17 @@ mod tests {
 
     #[test]
     fn test_stack() {
-        let stack = Stack::new();
-        let stack = stack.push(5);
-        let stack = stack.push(2);
-        let mut stack = stack.push(9);
+        let mut stack = Stack::new();
+        stack.push(5);
+        stack.push(2);
+        stack.push(9);
 
-        let (stack, head) = stack.pop();
-        assert_eq!(head, Some(9));
+        assert_eq!(stack.peek(), Some(&9));
 
-        let (stack, head) = stack.pop();
-        assert_eq!(head, Some(2));
-
-        let (stack, head) = stack.pop();
-        assert_eq!(head, Some(5));
-
-        let (stack, head) = stack.pop();
-        assert_eq!(head, None);
-
-        let (stack, head) = stack.pop();
-        assert_eq!(head, None);
+        assert_eq!(stack.pop(), Some(9));
+        assert_eq!(stack.pop(), Some(2));
+        assert_eq!(stack.pop(), Some(5));
+        assert_eq!(stack.pop(), None);
+        assert_eq!(stack.pop(), None);
     }
 }
