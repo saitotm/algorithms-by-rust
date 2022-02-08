@@ -1,29 +1,15 @@
-use std::rc::Rc;
-
 pub struct Stack<T> {
-    cur: Option<Rc<Node<T>>>,
+    cur: Option<Box<Node<T>>>,
 } 
 
 struct Node<T> {
     value: T,
-    prev: Option<Rc<Node<T>>>,
+    prev: Option<Box<Node<T>>>,
 }
 
 impl<T> Node<T> {
-    fn new(value: T, prev: Option<Rc<Node<T>>>) -> Self {
+    fn new(value: T, prev: Option<Box<Node<T>>>) -> Self {
         Self { value, prev }
-    }
-}
-
-impl<T: Clone> Clone for Node<T> {
-    fn clone(&self) -> Self {
-        Self { value: self.value.clone(), prev: self.prev.clone() }
-    }
-}
-
-impl<T> Clone for Stack<T> {
-    fn clone(&self) -> Self {
-        Self{ cur: self.cur.clone() }
     }
 }
 
@@ -37,15 +23,13 @@ impl<T> Stack<T> {
     }
 
     pub fn push(&mut self, value: T) {
-        self.cur = Some(Rc::new(Node::new(value, self.cur.take())));
+        self.cur = Some(Box::new(Node::new(value, self.cur.take())));
     }
-}
 
-impl<T: Clone> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
         self.cur.take()
-        .map(|rc| {
-            let top = Rc::try_unwrap(rc).unwrap_or_else(|rc| (*rc).clone());
+        .map(|cur| {
+            let top = cur;
             self.cur = top.prev;
             top.value
         })
