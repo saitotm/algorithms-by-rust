@@ -29,9 +29,8 @@ impl<T> Stack<T> {
     pub fn pop(&mut self) -> Option<T> {
         self.cur.take()
         .map(|cur| {
-            let top = cur;
-            self.cur = top.prev;
-            top.value
+            self.cur = cur.prev;
+            cur.value
         })
     }
 }
