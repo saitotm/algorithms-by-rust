@@ -14,6 +14,13 @@ impl<T> Node<T> {
     fn new(value: T) -> Self {
         Self { value: Rc::new(value), next: None }
     }
+
+    fn push(&mut self, value: T) {
+        match self.next {
+            Some(ref mut next) => { next.borrow_mut().push(value) },
+            None => { self.next = Some(Rc::new(RefCell::new(Node::new(value)))) },
+        }
+    }
 }
 
 impl<T> Queue<T> {
@@ -26,24 +33,9 @@ impl<T> Queue<T> {
     }
 
     pub fn push(&mut self, value: T) {
-        let new_node = Some(Rc::new(RefCell::new(Node::new(value))));
-
         match self.head {
-            None => self.head = new_node,
-            Some(ref h) => {
-                let mut node = h.clone();
-
-                loop {
-                    match &node.clone().borrow().next {
-                        Some(n) => { node = n.clone() },
-                        None => {   
-                            break;
-                        },
-                    }
-                }
-
-                node.borrow_mut().next = new_node;
-            },
+            None => self.head = Some(Rc::new(RefCell::new(Node::new(value)))),
+            Some(ref mut h) => h.borrow_mut().push(value),
         }
     }
 
