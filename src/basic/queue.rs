@@ -71,12 +71,15 @@ mod tests {
         que.push(2);
         que.push(9);
 
-        assert_eq!(que.peek(), Some(Rc::new(5)));
+        let que_peek_5 = que.peek();
+        assert_eq!(que_peek_5, Some(Rc::new(5)));
 
         assert_eq!(que.pop(), Some(Rc::new(5)));
         assert_eq!(que.pop(), Some(Rc::new(2)));
         assert_eq!(que.pop(), Some(Rc::new(9)));
         assert_eq!(que.pop(), None);
         assert_eq!(que.pop(), None);
+
+        assert_eq!(que_peek_5, Some(Rc::new(5)));
     }
 }
