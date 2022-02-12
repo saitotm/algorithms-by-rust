@@ -1,5 +1,6 @@
 use std::mem;
 use std::cmp::Ordering;
+use std::fmt::Debug;
 
 pub struct BinaryTree<T: Ord> {
     root: NodeOpt<T>,
@@ -15,7 +16,7 @@ struct Node<T: Ord> {
 type NodeOpt<T> = Option<Box<Node<T>>>;
 
 
-impl<T: Ord + std::fmt::Debug> Node<T> {
+impl<T: Ord + Debug> Node<T> {
     fn new(value: T) -> Self {
         Self { value: value, lhs: None, rhs: None }
     }
@@ -103,7 +104,7 @@ impl<T: Ord + std::fmt::Debug> Node<T> {
     }
 }
 
-impl<T: Ord + std::fmt::Debug> BinaryTree<T> where{
+impl<T: Ord + Debug> BinaryTree<T> where{
     pub fn new() -> Self {
         Self { root: None }
     }
