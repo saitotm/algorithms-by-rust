@@ -130,11 +130,8 @@ impl<T: Ord + std::fmt::Debug> BinaryTree<T> where{
     }
 
     // Todo: return true when the node which contains the value is removed.
-    pub fn remove(&mut self, value: &T) -> bool {
-        match Node::remove(&mut self.root, value) {
-            Some(_) => true,
-            None => false,
-        }
+    pub fn remove(&mut self, value: &T) -> Option<T> {
+        Node::remove(&mut self.root, value).map(|node| node.value)
     }
 }
 
@@ -217,7 +214,7 @@ mod tests {
     #[test]
     fn test_remove_empty_tree() {
         let mut binary_tree = BinaryTree::new();
-        assert!(!binary_tree.remove(&7));
+        assert_eq!(binary_tree.remove(&7), None);
         assert_eq!(binary_tree.find(&7), None);
     }
 
@@ -227,7 +224,7 @@ mod tests {
         binary_tree.add(7);
         assert_eq!(binary_tree.find(&7), Some(&7));
 
-        assert!(binary_tree.remove(&7));
+        assert_eq!(binary_tree.remove(&7), Some(7));
         assert_eq!(binary_tree.find(&7), None);
     }
 
@@ -243,7 +240,7 @@ mod tests {
                 assert_eq!(binary_tree.find(&n), Some(&n))
             );
 
-            assert!(binary_tree.remove(&removed_num));
+            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
             
             nums
             .into_iter()
@@ -269,7 +266,7 @@ mod tests {
                 assert_eq!(binary_tree.find(&n), Some(&n))
             );
 
-            assert!(binary_tree.remove(&removed_num));
+            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
             
             nums
             .into_iter()
@@ -296,7 +293,7 @@ mod tests {
                 assert_eq!(binary_tree.find(&n), Some(&n))
             );
 
-            assert!(binary_tree.remove(&removed_num));
+            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
 
             nums
             .into_iter()
