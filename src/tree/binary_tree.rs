@@ -58,36 +58,45 @@ impl<T: Ord + std::fmt::Debug> Node<T> {
         }
     }
 
-    fn remove(node_opt: &mut Option<Box<Self>>, value: &T) -> Option<T> {
-        let node = node_opt.as_mut()?;
+    fn remove(node_opt: &mut Option<Box<Self>>, value: &T) -> Option<Box<Self>> {
+        let mut node = node_opt.take()?;
+
         match value.cmp(&node.value) {
             Ordering::Equal => {
-                match (node.lhs.is_some(), node.rhs.is_some()) {
-                    (false, false) => {
-                        return node_opt.take().map(|node| node.value);
+                match (&mut node.lhs, &node.rhs) {
+                    (None, None) => {
+                        Some(node)
                     },
-                    (true, true) => {
-                        {
-                            let lhs = node.lhs.as_mut().unwrap();
-                            let max_node = lhs.max_mut();
-                            mem::swap(&mut node.value, &mut max_node.value);
-                        }
-                        return Self::remove(&mut node.lhs, value);
+                    (Some(lhs), Some(_)) => {
+                        let max_node = lhs.max_mut();
+                        mem::swap(&mut node.value, &mut max_node.value);
+
+                        let removed_node_opt = Self::remove(&mut node.lhs, value);
+                        *node_opt = Some(node);
+                        removed_node_opt
                     },
-                    (false, true) => {
-                        let removed_node_opt = node_opt.take().unwrap(); // node_opt must be Some(_) here
-                        *node_opt = removed_node_opt.rhs;
-                        return Some(removed_node_opt.value);
+                    (None, Some(_)) => {
+                        let mut removed_node = node;
+                        *node_opt = removed_node.rhs.take();
+                        Some(removed_node)
                     },
-                    (true, false) => {
-                        let removed_node_opt = node_opt.take().unwrap(); // node_opt must be Some(_) here
-                        *node_opt = removed_node_opt.lhs;
-                        return Some(removed_node_opt.value);
+                    (Some(_), None) => {
+                        let mut removed_node = node;
+                        *node_opt = removed_node.lhs.take();
+                        Some(removed_node)
                     },
-                };
+                }
             },
-            Ordering::Less => Self::remove(&mut node.lhs, value),
-            Ordering::Greater => Self::remove(&mut node.rhs, value),
+            Ordering::Less => { 
+                let removed_node = Self::remove(&mut node.lhs, value);
+                *node_opt = Some(node);
+                removed_node
+            },
+            Ordering::Greater => {
+                let removed_node = Self::remove(&mut node.rhs, value);
+                *node_opt = Some(node);
+                removed_node
+            },
         }
     }
 }
