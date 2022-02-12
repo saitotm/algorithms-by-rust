@@ -152,6 +152,7 @@ macro_rules! binary_tree {
 mod tests {
     use std::cmp::Ordering;
     use super::BinaryTree;
+    use super::NodeOpt;
 
     //        7
     //      /    \
@@ -162,9 +163,28 @@ mod tests {
     // 2          10
     const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
 
+    fn is_valid_structure<T: Ord>(node_opt: &NodeOpt<T>) -> bool {
+        if let Some(node) = node_opt {
+            if let Some(ref lhs) = node.lhs {
+                if !( (lhs.value < node.value) && is_valid_structure(&node.lhs) ) {
+                    return false;
+                }
+            }
+
+            if let Some(ref rhs) = node.rhs {
+                if !( (rhs.value > node.value) && is_valid_structure(&node.rhs) ) {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
     fn test_find(nums: &[i32]) {
         let binary_tree = BinaryTree::make_tree(nums);
 
+        assert!(is_valid_structure(&binary_tree.root));
         assert_eq!(binary_tree.find(&3), None);
 
         nums
@@ -178,6 +198,7 @@ mod tests {
         for removed_num in nums {
             let mut binary_tree = BinaryTree::make_tree(& nums);
 
+            assert!(is_valid_structure(&binary_tree.root));
             nums
             .into_iter()
             .for_each(|n|
@@ -185,6 +206,8 @@ mod tests {
             );
 
             assert_eq!(binary_tree.remove(&removed_num), Some(*removed_num));
+
+            assert!(is_valid_structure(&binary_tree.root));
             
             nums
             .into_iter()
