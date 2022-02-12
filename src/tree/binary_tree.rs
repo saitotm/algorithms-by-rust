@@ -129,7 +129,6 @@ impl<T: Ord + std::fmt::Debug> BinaryTree<T> where{
         }
     }
 
-    // Todo: return true when the node which contains the value is removed.
     pub fn remove(&mut self, value: &T) -> Option<T> {
         Node::remove(&mut self.root, value).map(|node| node.value)
     }
@@ -161,6 +160,41 @@ mod tests {
     // 2          10
     const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
 
+    fn test_find(nums: &[i32]) {
+        let binary_tree = BinaryTree::make_tree(nums);
+
+        assert_eq!(binary_tree.find(&3), None);
+
+        nums
+        .into_iter()
+        .for_each(|n| {
+            assert_eq!(binary_tree.find(n), Some(n));
+        });
+    }
+
+    fn test_remove(nums: &[i32]) {
+        for removed_num in nums {
+            let mut binary_tree = BinaryTree::make_tree(& nums);
+
+            nums
+            .into_iter()
+            .for_each(|n|
+                assert_eq!(binary_tree.find(n), Some(n))
+            );
+
+            assert_eq!(binary_tree.remove(&removed_num), Some(*removed_num));
+            
+            nums
+            .into_iter()
+            .for_each(|n| {
+                match n.cmp(&removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                    _ => assert_eq!(binary_tree.find(n), Some(n)),
+                }
+            });
+        }
+    }
+
     #[test]
     fn test_find_empty_tree() {
         let binary_tree = BinaryTree::new();
@@ -169,46 +203,25 @@ mod tests {
 
     #[test]
     fn test_find_root_only_tree() {
-        let mut binary_tree = BinaryTree::new();
-        binary_tree.add(7);
-
-        assert_eq!(binary_tree.find(&3), None);
-        assert_eq!(binary_tree.find(&7), Some(&7));
+        let nums = [7];
+        test_find(&nums[..]);
     }
 
     #[test]
     fn test_find_root_and_lhs_only_tree() {
-        let mut binary_tree = BinaryTree::new();
-        binary_tree.add(7);
-        binary_tree.add(2);
-
-        assert_eq!(binary_tree.find(&3), None);
-        assert_eq!(binary_tree.find(&7), Some(&7));
-        assert_eq!(binary_tree.find(&2), Some(&2));
+        let nums = [7, 2];
+        test_find(&nums[..]);
     }
 
     #[test]
     fn test_find_root_and_rhs_only_tree() {
-        let mut binary_tree = BinaryTree::new();
-        binary_tree.add(7);
-        binary_tree.add(11);
-
-        assert_eq!(binary_tree.find(&3), None);
-        assert_eq!(binary_tree.find(&7), Some(&7));
-        assert_eq!(binary_tree.find(&11), Some(&11));
+        let nums = [7, 11];
+        test_find(&nums[..]);
     }
 
     #[test]
     fn test_find_complex_tree() {
-        let binary_tree = BinaryTree::make_tree(&COMPLEX_TREE_SOURCE);
-
-        assert_eq!(binary_tree.find(&3), None);
-
-        COMPLEX_TREE_SOURCE
-        .into_iter()
-        .for_each(|n| {
-            assert_eq!(binary_tree.find(&n), Some(&n));
-        });
+        test_find(&COMPLEX_TREE_SOURCE[..]);
     }
 
     #[test]
@@ -220,112 +233,25 @@ mod tests {
 
     #[test]
     fn test_remove_root_only_tree() {
-        let mut binary_tree = BinaryTree::new();
-        binary_tree.add(7);
-        assert_eq!(binary_tree.find(&7), Some(&7));
-
-        assert_eq!(binary_tree.remove(&7), Some(7));
-        assert_eq!(binary_tree.find(&7), None);
+        let nums = [7];
+        test_remove(&nums[..]);
     }
 
     #[test]
     fn test_remove_root_and_lhs_only_tree() {
         let nums = [7, 2];
-        for removed_num in nums {
-            let mut binary_tree = BinaryTree::make_tree(&nums);
-
-            nums
-            .into_iter()
-            .for_each(|n|
-                assert_eq!(binary_tree.find(&n), Some(&n))
-            );
-
-            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
-            
-            nums
-            .into_iter()
-            .for_each(|n| {
-                match n.cmp(&removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
-                    _ => assert_eq!(binary_tree.find(&n), Some(&n)),
-                }
-            });
-        }
-    }
-     
-    #[test]
-    fn test_remove_complex_tree() {
-        let nums = COMPLEX_TREE_SOURCE;
-        for removed_num in nums {
-            dbg!(&removed_num);
-            let mut binary_tree = BinaryTree::make_tree(&nums);
-
-            nums
-            .into_iter()
-            .for_each(|n|
-                assert_eq!(binary_tree.find(&n), Some(&n))
-            );
-
-            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
-            
-            nums
-            .into_iter()
-            .for_each(|n| {
-                match n.cmp(&removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
-                    _ => { 
-                        assert_eq!(binary_tree.find(&n), Some(&n));
-                    },
-                }
-            });
-        }
+        test_remove(&nums[..]);
     }
 
     #[test]
     fn test_remove_root_and_rhs_only_tree() {
         let nums = [7, 11];
-        for removed_num in nums {
-            let mut binary_tree = BinaryTree::make_tree(&nums);
-
-            nums
-            .into_iter()
-            .for_each(|n| 
-                assert_eq!(binary_tree.find(&n), Some(&n))
-            );
-
-            assert_eq!(binary_tree.remove(&removed_num), Some(removed_num));
-
-            nums
-            .into_iter()
-            .for_each(|n| {
-                match n.cmp(&removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
-                    _ => assert_eq!(binary_tree.find(&n), Some(&n)),
-                }
-            });
-        }
+        test_remove(&nums[..]);
     }
 
-
-    // Todo: Add more test
     #[test]
-    fn test_binary_tree() {
-        let mut binary_tree = BinaryTree::new();
-        assert_eq!(binary_tree.find(&3), None);
-
-        binary_tree.add(7);
-        binary_tree.add(5);
-        binary_tree.add(3);
-
-        assert_eq!(binary_tree.find(&3), Some(&3));
-        assert_eq!(binary_tree.find(&5), Some(&5));
-        assert_eq!(binary_tree.find(&7), Some(&7));
-        assert_eq!(binary_tree.find(&9), None);
-
-        binary_tree.remove(&3);
-
-        assert_eq!(binary_tree.find(&7), Some(&7));
-        assert_eq!(binary_tree.find(&5), Some(&5));
-        assert_eq!(binary_tree.find(&3), None);
+    fn test_remove_complex_tree() {
+        let nums = COMPLEX_TREE_SOURCE;
+        test_remove(&nums[..]);
     }
 }
