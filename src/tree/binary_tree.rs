@@ -1,9 +1,11 @@
+use std::mem;
 use std::cmp::Ordering;
 
 pub struct BinaryTree<T: Ord> {
     root: Option<Box<Node<T>>>,
 }
 
+#[derive(Debug)]
 struct Node<T: Ord> {
     value: T,
     lhs: Option<Box<Self>>,
@@ -11,7 +13,7 @@ struct Node<T: Ord> {
 }
 
 
-impl<T: Ord> Node<T> {
+impl<T: Ord + std::fmt::Debug> Node<T> {
     fn new(value: T) -> Self {
         Self { value: value, lhs: None, rhs: None }
     }
@@ -42,64 +44,71 @@ impl<T: Ord> Node<T> {
         };
     }
 
-    fn take_child_min(&mut self) -> Option<Box<Node<T>>> {
-        match self.lhs.as_mut() {
-            Some(lhs) => {
-                match lhs.lhs {
-                    Some(_) => lhs.take_child_min(),
-                    None => self.lhs.take(),
-                }
-            },
-            None => self.rhs.take(),
+    fn min_mut(&mut self) -> &mut Self {
+        match self.lhs {
+            Some(ref mut lhs) => lhs.min_mut(),
+            None => self,
         }
     }
 
-    fn remove_child(&mut self, value: &T) {
-        match value.cmp(&self.value) {
+    fn max_mut(&mut self) -> &mut Self {
+        match self.rhs {
+            Some(ref mut rhs) => rhs.max_mut(),
+            None => self,
+        }
+    }
+
+    fn remove(node_opt: &mut Option<Box<Self>>, value: &T) -> Option<T> {
+        let node = node_opt.as_mut()?;
+        match value.cmp(&node.value) {
+            Ordering::Equal => {
+                match (&mut node.lhs, &node.rhs) {
+                    (None, None) => {
+                        return node_opt.take().map(|node| node.value);
+                    },
+                    (Some(ref mut lhs), Some(_)) => {
+                        let max_node_opt = lhs.max_mut();
+                        mem::swap(&mut node.value, &mut max_node_opt.value);
+                    },
+                    (None, Some(_)) => {
+                        let removed_node_opt = node_opt.take().unwrap();
+                        *node_opt = removed_node_opt.rhs;
+                        return Some(removed_node_opt.value);
+                    },
+                    (Some(_), None) => {
+                        let removed_node_opt = node_opt.take().unwrap();
+                        *node_opt = removed_node_opt.lhs;
+                        return Some(removed_node_opt.value);
+                    },
+                };
+                // Some, Some
+                Self::remove(&mut node.lhs, value)
+            },
             Ordering::Less => {
-                if let Some(mut lhs) = self.lhs.take() {
-                    match value.cmp(&lhs.value) {
-                        Ordering::Equal => {
-                            self.lhs = lhs.take_child_min()
-                            .map(|mut new_lhs| {
-                                new_lhs.lhs = lhs.lhs;
-                                new_lhs.rhs = lhs.rhs;
-                                new_lhs
-                            });
-                        },
-                        _ => {
-                            lhs.remove_child(value);
-                            self.lhs = Some(lhs);
-                        }
-                    }
-                }
+                Self::remove(&mut node.lhs, value)
             },
             Ordering::Greater => {
-                if let Some(mut rhs) = self.rhs.take() {
-                    match value.cmp(&rhs.value) {
-                        Ordering::Equal => {
-                            self.rhs = rhs.take_child_min()
-                            .map(|mut new_rhs| {
-                                new_rhs.lhs = rhs.lhs;
-                                new_rhs.rhs = rhs.rhs;
-                                new_rhs
-                            });
-                        },
-                        _ => {
-                            rhs.remove_child(value);
-                            self.rhs = Some(rhs);
-                        }
-                    }
-                }
-            },
-            _ => { /* do not remove self */ },
+                Self::remove(&mut node.rhs, value)
+            }
         }
     }
 }
 
-impl<T: Ord> BinaryTree<T> {
+impl<T: Ord + std::fmt::Debug> BinaryTree<T> where{
     pub fn new() -> Self {
         Self { root: None }
+    }
+
+    pub fn make_tree(array: &[T]) -> Self where
+        T: Copy {
+
+        array
+        .into_iter()
+        .fold(Self::new(), |mut tree, v| {
+                tree.add(*v);
+                tree
+            }
+        )
     }
 
     pub fn find(&self, value: &T) -> Option<&T> {
@@ -113,23 +122,188 @@ impl<T: Ord> BinaryTree<T> {
         }
     }
 
+    // Todo: return true when the node which contains the value is removed.
     pub fn remove(&mut self, value: &T) -> bool {
-        match self.root.as_mut() {
-            Some(root) => match value.cmp(&root.value) {
-                Ordering::Equal => self.root = root.take_child_min(),
-                _ => root.remove_child(value),
-            },
-            None => (),
+        match Node::remove(&mut self.root, value) {
+            Some(_) => true,
+            None => false,
         }
-
-        false
     }
+}
+
+macro_rules! binary_tree {
+    ( $($x : expr),* ) => {
+        {
+            let mut temp_bt = BinaryTree::new();
+            $(
+                temp_bt.add($x);
+            )*
+            temp_bt
+        }
+    };
 }
 
 #[cfg(test)]
 mod tests {
+    use std::cmp::Ordering;
     use super::BinaryTree;
 
+    //        7
+    //      /    \
+    //     5      11
+    //    / \    /  \
+    //   4   6  9    13
+    //  /        \   
+    // 2          10
+    const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
+
+    #[test]
+    fn test_find_empty_tree() {
+        let binary_tree = BinaryTree::new();
+        assert_eq!(binary_tree.find(&3), None);
+    }
+
+    #[test]
+    fn test_find_root_only_tree() {
+        let mut binary_tree = BinaryTree::new();
+        binary_tree.add(7);
+
+        assert_eq!(binary_tree.find(&3), None);
+        assert_eq!(binary_tree.find(&7), Some(&7));
+    }
+
+    #[test]
+    fn test_find_root_and_lhs_only_tree() {
+        let mut binary_tree = BinaryTree::new();
+        binary_tree.add(7);
+        binary_tree.add(2);
+
+        assert_eq!(binary_tree.find(&3), None);
+        assert_eq!(binary_tree.find(&7), Some(&7));
+        assert_eq!(binary_tree.find(&2), Some(&2));
+    }
+
+    #[test]
+    fn test_find_root_and_rhs_only_tree() {
+        let mut binary_tree = BinaryTree::new();
+        binary_tree.add(7);
+        binary_tree.add(11);
+
+        assert_eq!(binary_tree.find(&3), None);
+        assert_eq!(binary_tree.find(&7), Some(&7));
+        assert_eq!(binary_tree.find(&11), Some(&11));
+    }
+
+    #[test]
+    fn test_find_complex_tree() {
+        let binary_tree = BinaryTree::make_tree(&COMPLEX_TREE_SOURCE);
+
+        assert_eq!(binary_tree.find(&3), None);
+
+        COMPLEX_TREE_SOURCE
+        .into_iter()
+        .for_each(|n| {
+            assert_eq!(binary_tree.find(&n), Some(&n));
+        });
+    }
+
+    #[test]
+    fn test_remove_empty_tree() {
+        let mut binary_tree = BinaryTree::new();
+        assert!(!binary_tree.remove(&7));
+        assert_eq!(binary_tree.find(&7), None);
+    }
+
+    #[test]
+    fn test_remove_root_only_tree() {
+        let mut binary_tree = BinaryTree::new();
+        binary_tree.add(7);
+        assert_eq!(binary_tree.find(&7), Some(&7));
+
+        assert!(binary_tree.remove(&7));
+        assert_eq!(binary_tree.find(&7), None);
+    }
+
+    #[test]
+    fn test_remove_root_and_lhs_only_tree() {
+        let nums = [7, 2];
+        for removed_num in nums {
+            let mut binary_tree = BinaryTree::make_tree(&nums);
+
+            nums
+            .into_iter()
+            .for_each(|n|
+                assert_eq!(binary_tree.find(&n), Some(&n))
+            );
+
+            assert!(binary_tree.remove(&removed_num));
+            
+            nums
+            .into_iter()
+            .for_each(|n| {
+                match n.cmp(&removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                    _ => assert_eq!(binary_tree.find(&n), Some(&n)),
+                }
+            });
+        }
+    }
+     
+    #[test]
+    fn test_remove_complex_tree() {
+        let nums = COMPLEX_TREE_SOURCE;
+        for removed_num in nums {
+            dbg!(&removed_num);
+            let mut binary_tree = BinaryTree::make_tree(&nums);
+
+            nums
+            .into_iter()
+            .for_each(|n|
+                assert_eq!(binary_tree.find(&n), Some(&n))
+            );
+
+            assert!(binary_tree.remove(&removed_num));
+            
+            nums
+            .into_iter()
+            .for_each(|n| {
+                match n.cmp(&removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                    _ => { 
+                        assert_eq!(binary_tree.find(&n), Some(&n));
+                    },
+                }
+            });
+        }
+    }
+
+    #[test]
+    fn test_remove_root_and_rhs_only_tree() {
+        let nums = [7, 11];
+        for removed_num in nums {
+            let mut binary_tree = BinaryTree::make_tree(&nums);
+
+            nums
+            .into_iter()
+            .for_each(|n| 
+                assert_eq!(binary_tree.find(&n), Some(&n))
+            );
+
+            assert!(binary_tree.remove(&removed_num));
+
+            nums
+            .into_iter()
+            .for_each(|n| {
+                match n.cmp(&removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                    _ => assert_eq!(binary_tree.find(&n), Some(&n)),
+                }
+            });
+        }
+    }
+
+
+    // Todo: Add more test
     #[test]
     fn test_binary_tree() {
         let mut binary_tree = BinaryTree::new();
