@@ -2,15 +2,17 @@ use std::mem;
 use std::cmp::Ordering;
 
 pub struct BinaryTree<T: Ord> {
-    root: Option<Box<Node<T>>>,
+    root: NodeOpt<T>,
 }
 
 #[derive(Debug)]
 struct Node<T: Ord> {
     value: T,
-    lhs: Option<Box<Self>>,
-    rhs: Option<Box<Self>>,
+    lhs: NodeOpt<T>,
+    rhs: NodeOpt<T>,
 }
+
+type NodeOpt<T> = Option<Box<Node<T>>>;
 
 
 impl<T: Ord + std::fmt::Debug> Node<T> {
@@ -58,7 +60,7 @@ impl<T: Ord + std::fmt::Debug> Node<T> {
         }
     }
 
-    fn remove(node_opt: &mut Option<Box<Self>>, value: &T) -> Option<Box<Self>> {
+    fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> NodeOpt<T> {
         let mut node = node_opt.take()?;
 
         match value.cmp(&node.value) {
