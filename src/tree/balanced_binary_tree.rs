@@ -81,7 +81,7 @@ mod tests {
 
     fn test_remove(nums: &[i32]) {
         for removed_num in nums {
-            let mut binary_tree = BalancedBinaryTree::make_tree(& nums);
+            let binary_tree = BalancedBinaryTree::make_tree(& nums);
 
             assert!(is_valid_structure(&binary_tree.root));
             nums
@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_remove_empty_tree() {
-        let mut binary_tree = BalancedBinaryTree::new();
+        let binary_tree = BalancedBinaryTree::new();
         assert_eq!(binary_tree.remove(&7), None);
         assert_eq!(binary_tree.find(&7), None);
     }
