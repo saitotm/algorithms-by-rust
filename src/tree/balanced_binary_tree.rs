@@ -1,4 +1,4 @@
-struct BalancedBinaryTree<T: Ord> {
+struct AVL<T: Ord> {
     root: NodeOpt<T>,
 }
 
@@ -10,33 +10,33 @@ struct Node<T: Ord> {
 
 type NodeOpt<T> = Option<Box<Node<T>>>;
 
-impl<T: Ord> BalancedBinaryTree<T> {
+impl<T: Ord> AVL<T> {
     fn new() -> Self {
-        unimplemented!("BalancedBinaryTree::new is not implemented!");
+        unimplemented!("AVL::new is not implemented!");
     }
 
-    fn make_tree(arrat: &[T]) -> Self where
+    fn make_tree(array: &[T]) -> Self where
         T: Copy {
-        unimplemented!("BalancedBinaryTree::make_tree is not implemented!");
+        unimplemented!("AVL::make_tree is not implemented!");
     }
 
     fn find(&self, value: &T) -> Option<&T> {
-        unimplemented!("BalancedBinaryTree::find is not implemented!");
+        unimplemented!("AVL::find is not implemented!");
     }
 
-    fn add(&self, value: T) {
-        unimplemented!("BalancedBinaryTree::add is not implemented!");
+    fn add(&mut self, value: T) {
+        unimplemented!("AVL::add is not implemented!");
     }
 
-    fn remove(&self, value: &T) -> Option<T> {
-        unimplemented!("BalancedBinaryTree::remove is not implemented!");
+    fn remove(&mut self, value: &T) -> Option<T> {
+        unimplemented!("AVL::remove is not implemented!");
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
-    use super::BalancedBinaryTree;
+    use super::AVL;
     use super::NodeOpt;
 
     //        7
@@ -67,7 +67,7 @@ mod tests {
     }
 
     fn test_find(nums: &[i32]) {
-        let binary_tree = BalancedBinaryTree::make_tree(nums);
+        let binary_tree = AVL::make_tree(nums);
 
         assert!(is_valid_structure(&binary_tree.root));
         assert_eq!(binary_tree.find(&3), None);
@@ -81,7 +81,7 @@ mod tests {
 
     fn test_remove(nums: &[i32]) {
         for removed_num in nums {
-            let binary_tree = BalancedBinaryTree::make_tree(& nums);
+            let mut binary_tree = AVL::make_tree(& nums);
 
             assert!(is_valid_structure(&binary_tree.root));
             nums
@@ -107,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_find_empty_tree() {
-        let binary_tree = BalancedBinaryTree::new();
+        let binary_tree = AVL::new();
         assert_eq!(binary_tree.find(&3), None);
     }
 
@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_remove_empty_tree() {
-        let binary_tree = BalancedBinaryTree::new();
+        let mut binary_tree = AVL::new();
         assert_eq!(binary_tree.remove(&7), None);
         assert_eq!(binary_tree.find(&7), None);
     }
