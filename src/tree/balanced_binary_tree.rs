@@ -1,3 +1,6 @@
+use std::cmp::Ordering;
+use std::mem;
+
 struct AVL<T: Ord> {
     root: NodeOpt<T>,
 }
@@ -10,26 +13,110 @@ struct Node<T: Ord> {
 
 type NodeOpt<T> = Option<Box<Node<T>>>;
 
+impl<T: Ord> Node<T> {
+    fn new(value: T) -> Self {
+        Self { value: value, lhs: None, rhs: None }
+    }
+
+    fn find(&self, value: &T) -> Option<&T> {
+        match value.cmp(&self.value) {
+            Ordering::Equal => Some(&self.value),
+            Ordering::Less => self.lhs.as_ref()?.find(value), 
+            Ordering::Greater => self.rhs.as_ref()?.find(value), 
+        }
+    }
+
+    fn add(node_opt: &mut NodeOpt<T>, value: T) {
+        match node_opt {
+            Some(ref mut node) => {
+                match value.cmp(&node.value) {
+                    Ordering::Less => Node::add(&mut node.lhs, value),
+                    Ordering::Greater => Node::add(&mut node.rhs, value),
+                    Ordering::Equal => (),
+                }
+            },
+            None => *node_opt = Some(Box::new(Node::new(value))),
+        }
+    }
+
+    fn min(&mut self, value: &T) -> &mut Self {
+        match self.lhs {
+            Some(ref mut lhs) => lhs.min(value),
+            None => self,
+        }
+    }
+
+    fn max(&mut self, value: &T) -> &mut Self {
+        match self.rhs {
+            Some(ref mut rhs) => rhs.max(value),
+            None => self,
+        }
+    }
+
+    fn remove_self(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
+        let mut node = node_opt.take()?;
+
+        match (&mut node.lhs, &node.rhs) {
+            (None, None) => {
+                *node_opt = Some(node);
+                node_opt.take().map(|n| n.value)
+            },
+            (Some(_), None) => {
+                let lhs = node.lhs.take();
+                *node_opt = lhs;
+
+                Some(node.value)
+            },
+            (None, Some(_)) => {
+                let rhs = node.rhs.take();
+                *node_opt = rhs;
+
+                Some(node.value)
+            },
+            (Some(lhs), Some(_)) => {
+                let min_node = lhs.max(value);
+                mem::swap(&mut node.value, &mut min_node.value);
+
+                let result = Self::remove(&mut node.lhs, value);
+                *node_opt = Some(node);
+                result
+            }
+        }
+    }
+
+    fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
+        if let Some(ref mut node) = node_opt {
+            return match value.cmp(&node.value) {
+                Ordering::Less => Self::remove(&mut node.lhs, value),
+                Ordering::Greater => Self::remove(&mut node.rhs, value),
+                Ordering::Equal => Self::remove_self(node_opt, value),
+            }
+        }
+
+        None
+    }
+}
+
 impl<T: Ord> AVL<T> {
     fn new() -> Self {
-        unimplemented!("AVL::new is not implemented!");
+        Self { root: None }
     }
 
     fn make_tree(array: &[T]) -> Self where
         T: Copy {
-        unimplemented!("AVL::make_tree is not implemented!");
+        array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
     }
 
     fn find(&self, value: &T) -> Option<&T> {
-        unimplemented!("AVL::find is not implemented!");
+        self.root.as_ref()?.find(&value)
     }
 
     fn add(&mut self, value: T) {
-        unimplemented!("AVL::add is not implemented!");
+        Node::add(&mut self.root, value);
     }
 
     fn remove(&mut self, value: &T) -> Option<T> {
-        unimplemented!("AVL::remove is not implemented!");
+        Node::remove(&mut self.root, value)
     }
 }
 
