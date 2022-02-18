@@ -9,3 +9,4 @@ Implementations of basic algorithms by rust.
 
 - tree
   - Binary Tree
+  - AVL
