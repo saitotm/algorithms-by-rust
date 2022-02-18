@@ -188,11 +188,9 @@ mod tests {
         assert!(is_valid_structure(&binary_tree.root));
         assert_eq!(binary_tree.find(&3), None);
 
-        nums
-        .into_iter()
-        .for_each(|n| {
+        for n in nums {
             assert_eq!(binary_tree.find(n), Some(n));
-        });
+        }
     }
 
     fn test_remove(nums: &[i32]) {
@@ -200,24 +198,21 @@ mod tests {
             let mut binary_tree = BinaryTree::make_tree(& nums);
 
             assert!(is_valid_structure(&binary_tree.root));
-            nums
-            .into_iter()
-            .for_each(|n|
-                assert_eq!(binary_tree.find(n), Some(n))
-            );
+
+            for n in nums {
+                assert_eq!(binary_tree.find(n), Some(n));
+            }
 
             assert_eq!(binary_tree.remove(&removed_num), Some(*removed_num));
 
             assert!(is_valid_structure(&binary_tree.root));
             
-            nums
-            .into_iter()
-            .for_each(|n| {
+            for n in nums {
                 match n.cmp(&removed_num) {
                     Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
                     _ => assert_eq!(binary_tree.find(n), Some(n)),
                 }
-            });
+            }
         }
     }
 
