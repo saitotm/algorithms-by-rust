@@ -1,4 +1,4 @@
 mod binary_tree;
-mod balanced_binary_tree;
+mod avl;
 
 pub use binary_tree::BinaryTree;
