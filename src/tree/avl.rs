@@ -16,7 +16,7 @@ type NodeOpt<T> = Option<Box<Node<T>>>;
 
 impl<T: Ord> Node<T> {
     fn new(value: T) -> Self {
-        Self { value: value, lhs: None, rhs: None }
+        Self { value, lhs: None, rhs: None }
     }
 
     fn get_balance(&self) -> i32 {
@@ -185,7 +185,7 @@ impl<T: Ord> AVL<T> {
     }
 
     fn find(&self, value: &T) -> Option<&T> {
-        self.root.as_ref()?.find(&value)
+        self.root.as_ref()?.find(value)
     }
 
     fn add(&mut self, value: T) {
@@ -249,7 +249,7 @@ mod tests {
         assert_eq!(binary_tree.find(&3), None);
 
         nums
-        .into_iter()
+        .iter()
         .for_each(|n| {
             assert_eq!(binary_tree.find(n), Some(n));
         });
@@ -257,26 +257,26 @@ mod tests {
 
     fn test_remove(nums: &[i32]) {
         for removed_num in nums {
-            let mut binary_tree = AVL::make_tree(& nums);
+            let mut binary_tree = AVL::make_tree(nums);
 
             assert!(is_valid_balance(&binary_tree.root));
             assert!(is_valid_structure(&binary_tree.root));
             nums
-            .into_iter()
+            .iter()
             .for_each(|n|
                 assert_eq!(binary_tree.find(n), Some(n))
             );
 
-            assert_eq!(binary_tree.remove(&removed_num), Some(*removed_num));
+            assert_eq!(binary_tree.remove(removed_num), Some(*removed_num));
 
             assert!(is_valid_balance(&binary_tree.root));
             assert!(is_valid_structure(&binary_tree.root));
             
             nums
-            .into_iter()
+            .iter()
             .for_each(|n| {
-                match n.cmp(&removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                match n.cmp(removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(removed_num), None),
                     _ => assert_eq!(binary_tree.find(n), Some(n)),
                 }
             });
