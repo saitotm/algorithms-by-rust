@@ -18,7 +18,7 @@ type NodeOpt<T> = Option<Box<Node<T>>>;
 
 impl<T: Ord + Debug> Node<T> {
     fn new(value: T) -> Self {
-        Self { value: value, lhs: None, rhs: None }
+        Self { value, lhs: None, rhs: None }
     }
 
     fn find(&self, value: &T) -> Option<&Self> {
@@ -43,7 +43,7 @@ impl<T: Ord + Debug> Node<T> {
                     None => { self.rhs = Some(Box::new(Node::new(value))) },
                 }
             },
-            Ordering::Equal => return,
+            Ordering::Equal => (),
         };
     }
 
@@ -113,7 +113,7 @@ impl<T: Ord + Debug> BinaryTree<T> where{
         T: Copy {
 
         array
-        .into_iter()
+        .iter()
         .fold(Self::new(), |mut tree, v| {
                 tree.add(*v);
                 tree
@@ -195,7 +195,7 @@ mod tests {
 
     fn test_remove(nums: &[i32]) {
         for removed_num in nums {
-            let mut binary_tree = BinaryTree::make_tree(& nums);
+            let mut binary_tree = BinaryTree::make_tree(nums);
 
             assert!(is_valid_structure(&binary_tree.root));
 
@@ -203,13 +203,13 @@ mod tests {
                 assert_eq!(binary_tree.find(n), Some(n));
             }
 
-            assert_eq!(binary_tree.remove(&removed_num), Some(*removed_num));
+            assert_eq!(binary_tree.remove(removed_num), Some(*removed_num));
 
             assert!(is_valid_structure(&binary_tree.root));
             
             for n in nums {
-                match n.cmp(&removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(&removed_num), None),
+                match n.cmp(removed_num) {
+                    Ordering::Equal => assert_eq!(binary_tree.find(removed_num), None),
                     _ => assert_eq!(binary_tree.find(n), Some(n)),
                 }
             }
