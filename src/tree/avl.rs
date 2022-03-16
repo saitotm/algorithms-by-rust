@@ -14,6 +14,29 @@ struct Node<T: Ord> {
 
 type NodeOpt<T> = Option<Box<Node<T>>>;
 
+impl<T: Ord> AVL<T> {
+    pub fn new() -> Self {
+        Self { root: None }
+    }
+
+    pub fn make_tree(array: &[T]) -> Self where
+        T: Copy {
+        array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
+    }
+
+    pub fn find(&self, value: &T) -> Option<&T> {
+        self.root.as_ref()?.find(value)
+    }
+
+    pub fn add(&mut self, value: T) {
+        Node::add(&mut self.root, value);
+    }
+
+    pub fn remove(&mut self, value: &T) -> Option<T> {
+        Node::remove(&mut self.root, value)
+    }
+}
+
 impl<T: Ord> Node<T> {
     fn new(value: T) -> Self {
         Self { value, lhs: None, rhs: None }
@@ -171,29 +194,6 @@ impl<T: Ord> Node<T> {
         }
 
         None
-    }
-}
-
-impl<T: Ord> AVL<T> {
-    pub fn new() -> Self {
-        Self { root: None }
-    }
-
-    pub fn make_tree(array: &[T]) -> Self where
-        T: Copy {
-        array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
-    }
-
-    pub fn find(&self, value: &T) -> Option<&T> {
-        self.root.as_ref()?.find(value)
-    }
-
-    pub fn add(&mut self, value: T) {
-        Node::add(&mut self.root, value);
-    }
-
-    pub fn remove(&mut self, value: &T) -> Option<T> {
-        Node::remove(&mut self.root, value)
     }
 }
 
