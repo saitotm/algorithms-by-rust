@@ -202,14 +202,7 @@ mod tests {
     use std::cmp::Ordering;
     use super::AVL;
     use super::NodeOpt;
-
-    //        7
-    //      /    \
-    //     5      11
-    //    / \    /  \
-    //   4   6  9    13
-    //  /        \   
-    // 2          10
+    
     const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
 
     fn is_valid_balance<T: Ord>(node_opt: &NodeOpt<T>) -> bool {
