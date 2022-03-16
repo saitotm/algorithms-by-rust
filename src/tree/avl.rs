@@ -88,7 +88,6 @@ impl<T: Ord> Node<T> {
         }
     }
 
-
     fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
         if let Some(ref mut node) = node_opt {
             let result = match value.cmp(&node.value) {
@@ -171,14 +170,13 @@ impl<T: Ord> Node<T> {
         }
     }
 
-
     // Returns the difference of the children's heights.
     // If the right child is taller than left, then the return value is positive.
     // If the left child is taller than right, then the return value is negative.
     fn get_balance(&self) -> i32 {
         Self::get_height(&self.rhs) - Self::get_height(&self.lhs)
     }
-    
+
     // Returns the height of the given node.
     // If the node is None, then 0 is returned.
     // If the node is Some, then adding one to the bigger one of the children's heights.
@@ -188,7 +186,7 @@ impl<T: Ord> Node<T> {
             None => 0,
         }
     }
-    
+
     // The given node_opt and the right child required to be Option::Some.
     fn rotate_left(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
@@ -210,7 +208,7 @@ impl<T: Ord> Node<T> {
 
         *node_opt = Some(lhs);
     }
-     
+
     // Returns the mutable reference to the node containing the greatest value in the tree.
     fn max_mut(&mut self) -> &mut Self {
         match self.rhs {
@@ -218,7 +216,6 @@ impl<T: Ord> Node<T> {
             None => self,
         }
     }
-
 }
 
 #[cfg(test)]
