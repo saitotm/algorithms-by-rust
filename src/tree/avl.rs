@@ -118,14 +118,14 @@ impl<T: Ord> Node<T> {
 
             match balance {
                 2 => {
-                    let rhs = node.rhs.as_ref().unwrap();
+                    let rhs = node.rhs.as_ref().expect("The rhs of the node must be Option::Some because the balance of the node is positive.");
                     if rhs.get_balance() == -1 {
                         Self::rotate_right(&mut node.rhs);
                     }
                     Self::rotate_left(node_opt);
                 }
                 -2 => {
-                    let lhs = node.lhs.as_ref().unwrap();
+                    let lhs = node.lhs.as_ref().expect("The lhs of the node must be Option::Some because the balance of the node is negative.");
                     if lhs.get_balance() == 1 {
                         Self::rotate_left(&mut node.lhs);
                     }
@@ -139,7 +139,9 @@ impl<T: Ord> Node<T> {
     // Removes the given node.
     // The value of the given node_opt and the given value are required to be same.
     fn remove_self(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
-        let mut node = node_opt.take().expect("The given node_opt is required not to be Option::None.");
+        let mut node = node_opt
+            .take()
+            .expect("The given node_opt is required not to be Option::None.");
 
         match (&mut node.lhs, &node.rhs) {
             (None, None) => {
@@ -189,8 +191,13 @@ impl<T: Ord> Node<T> {
 
     // The given node_opt and the right child are required to be Option::Some.
     fn rotate_left(node_opt: &mut NodeOpt<T>) {
-        let mut node = node_opt.take().unwrap();
-        let mut rhs = node.rhs.take().unwrap();
+        let mut node = node_opt
+            .take()
+            .expect("The given node_opt is required not to be None.");
+        let mut rhs = node
+            .rhs
+            .take()
+            .expect("The rhs of the given node_opt is required not to be None.");
 
         node.rhs = rhs.lhs.take();
         rhs.lhs = Some(node);
@@ -200,8 +207,13 @@ impl<T: Ord> Node<T> {
 
     // The given node_opt and the left child are required to be Option::Some.
     fn rotate_right(node_opt: &mut NodeOpt<T>) {
-        let mut node = node_opt.take().unwrap();
-        let mut lhs = node.lhs.take().unwrap();
+        let mut node = node_opt
+            .take()
+            .expect("The given node_opt is required not to be None.");
+        let mut lhs = node
+            .lhs
+            .take()
+            .expect("The lhs of The given node_opt is required not to be None.");
 
         node.lhs = lhs.rhs.take();
         lhs.rhs = Some(node);
