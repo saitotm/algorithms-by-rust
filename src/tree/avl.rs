@@ -138,6 +138,7 @@ impl<T: Ord> Node<T> {
     }
 
     // Removes the given node.
+    // The value of the given node_opt and the given value are required to be same.
     fn remove_self(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
         let mut node = node_opt.take()?;
 
@@ -188,7 +189,7 @@ impl<T: Ord> Node<T> {
         }
     }
     
-    // the given node_opt and the right child must be Some.
+    // The given node_opt and the right child required to be Option::Some.
     fn rotate_left(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut rhs = node.rhs.take().unwrap();
@@ -199,7 +200,7 @@ impl<T: Ord> Node<T> {
         *node_opt = Some(rhs);
     }
 
-    // the given node_opt and the left child must be Some.
+    // The given node_opt and the left child are required to be Option::Some.
     fn rotate_right(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut lhs = node.lhs.take().unwrap();
@@ -209,7 +210,8 @@ impl<T: Ord> Node<T> {
 
         *node_opt = Some(lhs);
     }
-
+     
+    // Returns the mutable reference to the node containing the greatest value in the tree.
     fn max_mut(&mut self) -> &mut Self {
         match self.rhs {
             Some(ref mut rhs) => rhs.max_mut(),
