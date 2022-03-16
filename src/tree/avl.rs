@@ -187,7 +187,7 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    // The given node_opt and the right child required to be Option::Some.
+    // The given node_opt and the right child are required to be Option::Some.
     fn rotate_left(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut rhs = node.rhs.take().unwrap();
