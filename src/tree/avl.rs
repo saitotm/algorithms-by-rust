@@ -139,7 +139,7 @@ impl<T: Ord> Node<T> {
     // Removes the given node.
     // The value of the given node_opt and the given value are required to be same.
     fn remove_self(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
-        let mut node = node_opt.take()?;
+        let mut node = node_opt.take().expect("The given node_opt is required not to be Option::None.");
 
         match (&mut node.lhs, &node.rhs) {
             (None, None) => {
