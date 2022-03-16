@@ -15,24 +15,35 @@ struct Node<T: Ord> {
 type NodeOpt<T> = Option<Box<Node<T>>>;
 
 impl<T: Ord> AVL<T> {
+    /// Constructs a new, empty AVL<T>.
     pub fn new() -> Self {
         Self { root: None }
     }
-
-    pub fn make_tree(array: &[T]) -> Self where
+    
+    /// Creates a AVL<T> from  slice
     pub fn from_slice(array: &[T]) -> Self where
         T: Copy {
         array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
     }
 
+    /// Finds a node for a given value.
+    /// 
+    /// If the value is found then Option::Some is returned, containing the matching
+    /// value. If the value is not found then Option::None is returned.
     pub fn find(&self, value: &T) -> Option<&T> {
         self.root.as_ref()?.find(value)
     }
-
+    
+    /// Adds a node containing a given value.
     pub fn add(&mut self, value: T) {
         Node::add(&mut self.root, value);
     }
-
+    
+    /// Removes a node containing a given value.
+    ///
+    /// If the value is found then the node containing it is removed and Option::Some 
+    /// is returned, containing the matching value. If the value is not found then 
+    /// Option::None is returned.
     pub fn remove(&mut self, value: &T) -> Option<T> {
         Node::remove(&mut self.root, value)
     }
