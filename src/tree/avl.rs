@@ -284,61 +284,61 @@ mod tests {
     }
 
     #[test]
-    fn test_find_empty_tree() {
+    fn find_empty_tree() {
         let binary_tree = AVL::new();
         assert_eq!(binary_tree.find(&3), None);
     }
 
     #[test]
-    fn test_find_root_only_tree() {
+    fn find_root_only_tree() {
         let nums = [7];
         test_find(&nums[..]);
     }
 
     #[test]
-    fn test_find_root_and_lhs_only_tree() {
+    fn find_root_and_lhs_only_tree() {
         let nums = [7, 2];
         test_find(&nums[..]);
     }
 
     #[test]
-    fn test_find_root_and_rhs_only_tree() {
+    fn find_root_and_rhs_only_tree() {
         let nums = [7, 11];
         test_find(&nums[..]);
     }
 
     #[test]
-    fn test_find_complex_tree() {
+    fn find_complex_tree() {
         test_find(&COMPLEX_TREE_SOURCE[..]);
     }
 
     #[test]
-    fn test_remove_empty_tree() {
+    fn remove_empty_tree() {
         let mut binary_tree = AVL::new();
         assert_eq!(binary_tree.remove(&7), None);
         assert_eq!(binary_tree.find(&7), None);
     }
 
     #[test]
-    fn test_remove_root_only_tree() {
+    fn remove_root_only_tree() {
         let nums = [7];
         test_remove(&nums[..]);
     }
 
     #[test]
-    fn test_remove_root_and_lhs_only_tree() {
+    fn remove_root_and_lhs_only_tree() {
         let nums = [7, 2];
         test_remove(&nums[..]);
     }
 
     #[test]
-    fn test_remove_root_and_rhs_only_tree() {
+    fn remove_root_and_rhs_only_tree() {
         let nums = [7, 11];
         test_remove(&nums[..]);
     }
 
     #[test]
-    fn test_remove_complex_tree() {
+    fn remove_complex_tree() {
         let nums = COMPLEX_TREE_SOURCE;
         test_remove(&nums[..]);
     }
