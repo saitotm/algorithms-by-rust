@@ -1,6 +1,6 @@
+use std::cmp;
 use std::cmp::Ordering;
 use std::mem;
-use std::cmp;
 
 struct AVL<T: Ord> {
     root: NodeOpt<T>,
@@ -19,30 +19,35 @@ impl<T: Ord> AVL<T> {
     pub fn new() -> Self {
         Self { root: None }
     }
-    
+
     /// Creates a AVL<T> from  slice
-    pub fn from_slice(array: &[T]) -> Self where
-        T: Copy {
-        array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
+    pub fn from_slice(array: &[T]) -> Self
+    where
+        T: Copy,
+    {
+        array.iter().fold(Self::new(), |mut avl, v| {
+            avl.add(*v);
+            avl
+        })
     }
 
     /// Finds a node for a given value.
-    /// 
+    ///
     /// If the value is found then Option::Some is returned, containing the matching
     /// value. If the value is not found then Option::None is returned.
     pub fn find(&self, value: &T) -> Option<&T> {
         self.root.as_ref()?.find(value)
     }
-    
+
     /// Adds a node containing a given value.
     pub fn add(&mut self, value: T) {
         Node::add(&mut self.root, value);
     }
-    
+
     /// Removes a node containing a given value.
     ///
-    /// If the value is found then the node containing it is removed and Option::Some 
-    /// is returned, containing the matching value. If the value is not found then 
+    /// If the value is found then the node containing it is removed and Option::Some
+    /// is returned, containing the matching value. If the value is not found then
     /// Option::None is returned.
     pub fn remove(&mut self, value: &T) -> Option<T> {
         Node::remove(&mut self.root, value)
@@ -51,7 +56,11 @@ impl<T: Ord> AVL<T> {
 
 impl<T: Ord> Node<T> {
     fn new(value: T) -> Self {
-        Self { value, lhs: None, rhs: None }
+        Self {
+            value,
+            lhs: None,
+            rhs: None,
+        }
     }
 
     fn get_balance(&self) -> i32 {
@@ -68,8 +77,8 @@ impl<T: Ord> Node<T> {
     fn find(&self, value: &T) -> Option<&T> {
         match value.cmp(&self.value) {
             Ordering::Equal => Some(&self.value),
-            Ordering::Less => self.lhs.as_ref()?.find(value), 
-            Ordering::Greater => self.rhs.as_ref()?.find(value), 
+            Ordering::Less => self.lhs.as_ref()?.find(value),
+            Ordering::Greater => self.rhs.as_ref()?.find(value),
         }
     }
 
@@ -83,7 +92,6 @@ impl<T: Ord> Node<T> {
         *node_opt = Some(rhs);
     }
 
-
     fn rotate_right(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut lhs = node.lhs.take().unwrap();
@@ -93,7 +101,6 @@ impl<T: Ord> Node<T> {
 
         *node_opt = Some(lhs);
     }
-
 
     fn rebalance(node_opt: &mut NodeOpt<T>) {
         if let Some(ref mut node) = node_opt {
@@ -106,14 +113,14 @@ impl<T: Ord> Node<T> {
                         Self::rotate_right(&mut node.rhs);
                     }
                     Self::rotate_left(node_opt);
-                },
+                }
                 -2 => {
                     let lhs = node.lhs.as_ref().unwrap();
                     if lhs.get_balance() == 1 {
                         Self::rotate_left(&mut node.lhs);
                     }
                     Self::rotate_right(node_opt);
-                },
+                }
                 _ => (),
             }
         }
@@ -121,18 +128,16 @@ impl<T: Ord> Node<T> {
 
     fn add(node_opt: &mut NodeOpt<T>, value: T) {
         match node_opt {
-            Some(ref mut node) => {
-                match value.cmp(&node.value) {
-                    Ordering::Less => {
-                        Node::add(&mut node.lhs, value);
-                        Self::rebalance(node_opt);
-                    },
-                    Ordering::Greater => {
-                        Node::add(&mut node.rhs, value);
-                        Self::rebalance(node_opt);
-                    },
-                    Ordering::Equal => (),
+            Some(ref mut node) => match value.cmp(&node.value) {
+                Ordering::Less => {
+                    Node::add(&mut node.lhs, value);
+                    Self::rebalance(node_opt);
                 }
+                Ordering::Greater => {
+                    Node::add(&mut node.rhs, value);
+                    Self::rebalance(node_opt);
+                }
+                Ordering::Equal => (),
             },
             None => *node_opt = Some(Box::new(Node::new(value))),
         }
@@ -159,19 +164,19 @@ impl<T: Ord> Node<T> {
             (None, None) => {
                 *node_opt = Some(node);
                 node_opt.take().map(|n| n.value)
-            },
+            }
             (Some(_), None) => {
                 let lhs = node.lhs.take();
                 *node_opt = lhs;
 
                 Some(node.value)
-            },
+            }
             (None, Some(_)) => {
                 let rhs = node.rhs.take();
                 *node_opt = rhs;
 
                 Some(node.value)
-            },
+            }
             (Some(lhs), Some(_)) => {
                 let min_node = lhs.max(value);
                 mem::swap(&mut node.value, &mut min_node.value);
@@ -191,14 +196,14 @@ impl<T: Ord> Node<T> {
                     let result = Self::remove(&mut node.lhs, value);
                     Self::rebalance(node_opt);
 
-                    result 
-                },
+                    result
+                }
                 Ordering::Greater => {
                     let result = Self::remove(&mut node.rhs, value);
                     Self::rebalance(node_opt);
 
                     result
-                },
+                }
                 Ordering::Equal => Self::remove_self(node_opt, value),
             };
 
@@ -211,10 +216,10 @@ impl<T: Ord> Node<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
-    use super::AVL;
     use super::NodeOpt;
-    
+    use super::AVL;
+    use std::cmp::Ordering;
+
     const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
 
     fn is_valid_balance<T: Ord>(node_opt: &NodeOpt<T>) -> bool {
@@ -222,22 +227,22 @@ mod tests {
             return match node.get_balance().cmp(&1) {
                 Ordering::Greater => false,
                 _ => is_valid_balance(&node.lhs) && is_valid_balance(&node.rhs),
-            }
+            };
         }
 
-        true 
+        true
     }
 
     fn is_valid_structure<T: Ord>(node_opt: &NodeOpt<T>) -> bool {
         if let Some(node) = node_opt {
             if let Some(ref lhs) = node.lhs {
-                if !( (lhs.value < node.value) && is_valid_structure(&node.lhs) ) {
+                if !((lhs.value < node.value) && is_valid_structure(&node.lhs)) {
                     return false;
                 }
             }
 
             if let Some(ref rhs) = node.rhs {
-                if !( (rhs.value > node.value) && is_valid_structure(&node.rhs) ) {
+                if !((rhs.value > node.value) && is_valid_structure(&node.rhs)) {
                     return false;
                 }
             }
@@ -253,9 +258,7 @@ mod tests {
         assert!(is_valid_structure(&binary_tree.root));
         assert_eq!(binary_tree.find(&3), None);
 
-        nums
-        .iter()
-        .for_each(|n| {
+        nums.iter().for_each(|n| {
             assert_eq!(binary_tree.find(n), Some(n));
         });
     }
@@ -266,24 +269,17 @@ mod tests {
 
             assert!(is_valid_balance(&binary_tree.root));
             assert!(is_valid_structure(&binary_tree.root));
-            nums
-            .iter()
-            .for_each(|n|
-                assert_eq!(binary_tree.find(n), Some(n))
-            );
+            nums.iter()
+                .for_each(|n| assert_eq!(binary_tree.find(n), Some(n)));
 
             assert_eq!(binary_tree.remove(removed_num), Some(*removed_num));
 
             assert!(is_valid_balance(&binary_tree.root));
             assert!(is_valid_structure(&binary_tree.root));
-            
-            nums
-            .iter()
-            .for_each(|n| {
-                match n.cmp(removed_num) {
-                    Ordering::Equal => assert_eq!(binary_tree.find(removed_num), None),
-                    _ => assert_eq!(binary_tree.find(n), Some(n)),
-                }
+
+            nums.iter().for_each(|n| match n.cmp(removed_num) {
+                Ordering::Equal => assert_eq!(binary_tree.find(removed_num), None),
+                _ => assert_eq!(binary_tree.find(n), Some(n)),
             });
         }
     }
