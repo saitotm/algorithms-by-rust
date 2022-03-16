@@ -63,17 +63,6 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    fn get_balance(&self) -> i32 {
-        Self::get_height(&self.rhs) - Self::get_height(&self.lhs)
-    }
-
-    fn get_height(node_opt: &NodeOpt<T>) -> i32 {
-        match node_opt {
-            Some(node) => cmp::max(Self::get_height(&node.lhs), Self::get_height(&node.rhs)) + 1,
-            None => 0,
-        }
-    }
-
     fn find(&self, value: &T) -> Option<&T> {
         match value.cmp(&self.value) {
             Ordering::Equal => Some(&self.value),
@@ -99,8 +88,6 @@ impl<T: Ord> Node<T> {
         }
     }
 
-        node.rhs = rhs.lhs.take();
-        rhs.lhs = Some(node);
 
     fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
         if let Some(ref mut node) = node_opt {
@@ -150,37 +137,7 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    fn add(node_opt: &mut NodeOpt<T>, value: T) {
-        match node_opt {
-            Some(ref mut node) => match value.cmp(&node.value) {
-                Ordering::Less => {
-                    Node::add(&mut node.lhs, value);
-                    Self::rebalance(node_opt);
-                }
-                Ordering::Greater => {
-                    Node::add(&mut node.rhs, value);
-                    Self::rebalance(node_opt);
-                }
-                Ordering::Equal => (),
-            },
-            None => *node_opt = Some(Box::new(Node::new(value))),
-        }
-    }
-
-    fn min(&mut self, value: &T) -> &mut Self {
-        match self.lhs {
-            Some(ref mut lhs) => lhs.min(value),
-            None => self,
-        }
-    }
-
-    fn max(&mut self, value: &T) -> &mut Self {
-        match self.rhs {
-            Some(ref mut rhs) => rhs.max(value),
-            None => self,
-        }
-    }
-
+    // Removes the given node.
     fn remove_self(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
         let mut node = node_opt.take()?;
 
@@ -213,18 +170,17 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
-        if let Some(ref mut node) = node_opt {
-            let result = match value.cmp(&node.value) {
-                Ordering::Less => {
-                    let result = Self::remove(&mut node.lhs, value);
-                    Self::rebalance(node_opt);
 
-                    result
-                }
-                Ordering::Greater => {
-                    let result = Self::remove(&mut node.rhs, value);
-                    Self::rebalance(node_opt);
+    // Returns the difference of the children's heights.
+    // If the right child is taller than left, then the return value is positive.
+    // If the left child is taller than right, then the return value is negative.
+    fn get_balance(&self) -> i32 {
+        Self::get_height(&self.rhs) - Self::get_height(&self.lhs)
+    }
+    
+    // Returns the height of the given node.
+    // If the node is None, then 0 is returned.
+    // If the node is Some, then adding one to the bigger one of the children's heights.
     fn get_height(node_opt: &NodeOpt<T>) -> i32 {
         match node_opt {
             Some(node) => cmp::max(Self::get_height(&node.lhs), Self::get_height(&node.rhs)) + 1,
@@ -232,18 +188,18 @@ impl<T: Ord> Node<T> {
         }
     }
     
+    // the given node_opt and the right child must be Some.
     fn rotate_left(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut rhs = node.rhs.take().unwrap();
 
-                    result
-                }
-                Ordering::Equal => Self::remove_self(node_opt, value),
-            };
+        node.rhs = rhs.lhs.take();
+        rhs.lhs = Some(node);
 
-            return result;
-        }
+        *node_opt = Some(rhs);
+    }
 
+    // the given node_opt and the left child must be Some.
     fn rotate_right(node_opt: &mut NodeOpt<T>) {
         let mut node = node_opt.take().unwrap();
         let mut lhs = node.lhs.take().unwrap();
@@ -254,13 +210,13 @@ impl<T: Ord> Node<T> {
         *node_opt = Some(lhs);
     }
 
-        None
     fn max(&mut self) -> &mut Self {
         match self.rhs {
             Some(ref mut rhs) => rhs.max(),
             None => self,
         }
     }
+
 }
 
 #[cfg(test)]
