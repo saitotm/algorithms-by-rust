@@ -20,6 +20,7 @@ impl<T: Ord> AVL<T> {
     }
 
     pub fn make_tree(array: &[T]) -> Self where
+    pub fn from_slice(array: &[T]) -> Self where
         T: Copy {
         array.iter().fold(Self::new(), |mut avl, v| { avl.add(*v); avl})
     }
@@ -235,7 +236,7 @@ mod tests {
     }
 
     fn test_find(nums: &[i32]) {
-        let binary_tree = AVL::make_tree(nums);
+        let binary_tree = AVL::from_slice(nums);
 
         assert!(is_valid_balance(&binary_tree.root));
         assert!(is_valid_structure(&binary_tree.root));
@@ -250,7 +251,7 @@ mod tests {
 
     fn test_remove(nums: &[i32]) {
         for removed_num in nums {
-            let mut binary_tree = AVL::make_tree(nums);
+            let mut binary_tree = AVL::from_slice(nums);
 
             assert!(is_valid_balance(&binary_tree.root));
             assert!(is_valid_structure(&binary_tree.root));
