@@ -82,24 +82,48 @@ impl<T: Ord> Node<T> {
         }
     }
 
-    fn rotate_left(node_opt: &mut NodeOpt<T>) {
-        let mut node = node_opt.take().unwrap();
-        let mut rhs = node.rhs.take().unwrap();
+    fn add(node_opt: &mut NodeOpt<T>, value: T) {
+        match node_opt {
+            Some(ref mut node) => match value.cmp(&node.value) {
+                Ordering::Less => {
+                    Node::add(&mut node.lhs, value);
+                    Self::rebalance(node_opt);
+                }
+                Ordering::Greater => {
+                    Node::add(&mut node.rhs, value);
+                    Self::rebalance(node_opt);
+                }
+                Ordering::Equal => (),
+            },
+            None => *node_opt = Some(Box::new(Node::new(value))),
+        }
+    }
 
         node.rhs = rhs.lhs.take();
         rhs.lhs = Some(node);
 
-        *node_opt = Some(rhs);
-    }
+    fn remove(node_opt: &mut NodeOpt<T>, value: &T) -> Option<T> {
+        if let Some(ref mut node) = node_opt {
+            let result = match value.cmp(&node.value) {
+                Ordering::Less => {
+                    let result = Self::remove(&mut node.lhs, value);
+                    Self::rebalance(node_opt);
 
-    fn rotate_right(node_opt: &mut NodeOpt<T>) {
-        let mut node = node_opt.take().unwrap();
-        let mut lhs = node.lhs.take().unwrap();
+                    result
+                }
+                Ordering::Greater => {
+                    let result = Self::remove(&mut node.rhs, value);
+                    Self::rebalance(node_opt);
 
-        node.lhs = lhs.rhs.take();
-        lhs.rhs = Some(node);
+                    result
+                }
+                Ordering::Equal => Self::remove_self(node_opt, value),
+            };
 
-        *node_opt = Some(lhs);
+            return result;
+        }
+
+        None
     }
 
     fn rebalance(node_opt: &mut NodeOpt<T>) {
@@ -201,6 +225,16 @@ impl<T: Ord> Node<T> {
                 Ordering::Greater => {
                     let result = Self::remove(&mut node.rhs, value);
                     Self::rebalance(node_opt);
+    fn get_height(node_opt: &NodeOpt<T>) -> i32 {
+        match node_opt {
+            Some(node) => cmp::max(Self::get_height(&node.lhs), Self::get_height(&node.rhs)) + 1,
+            None => 0,
+        }
+    }
+    
+    fn rotate_left(node_opt: &mut NodeOpt<T>) {
+        let mut node = node_opt.take().unwrap();
+        let mut rhs = node.rhs.take().unwrap();
 
                     result
                 }
@@ -209,6 +243,16 @@ impl<T: Ord> Node<T> {
 
             return result;
         }
+
+    fn rotate_right(node_opt: &mut NodeOpt<T>) {
+        let mut node = node_opt.take().unwrap();
+        let mut lhs = node.lhs.take().unwrap();
+
+        node.lhs = lhs.rhs.take();
+        lhs.rhs = Some(node);
+
+        *node_opt = Some(lhs);
+    }
 
         None
     fn max(&mut self) -> &mut Self {
