@@ -178,8 +178,8 @@ impl<T: Ord> Node<T> {
                 Some(node.value)
             }
             (Some(lhs), Some(_)) => {
-                let min_node = lhs.max(value);
-                mem::swap(&mut node.value, &mut min_node.value);
+                let lhs_max_node = lhs.max();
+                mem::swap(&mut node.value, &mut lhs_max_node.value);
 
                 let result = Self::remove(&mut node.lhs, value);
                 *node_opt = Some(node);
@@ -211,6 +211,11 @@ impl<T: Ord> Node<T> {
         }
 
         None
+    fn max(&mut self) -> &mut Self {
+        match self.rhs {
+            Some(ref mut rhs) => rhs.max(),
+            None => self,
+        }
     }
 }
 
