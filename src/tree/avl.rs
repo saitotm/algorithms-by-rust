@@ -1,4 +1,3 @@
-// TODO: define struct Balance
 use std::cmp;
 use std::cmp::Ordering;
 use std::mem;
@@ -15,6 +14,13 @@ struct Node<T: Ord> {
     value: T,
     lhs: Box<NodeOption<T>>,
     rhs: Box<NodeOption<T>>,
+}
+
+#[derive(PartialEq, Eq)]
+enum Balance {
+    BiasedRight(i32),
+    BiasedLeft(i32),
+    NoBiase,
 }
 
 impl<T: Ord> AVL<T> {
@@ -126,16 +132,16 @@ impl<T: Ord> NodeOption<T> {
             let balance = node.get_balance();
 
             match balance {
-                2 => {
+                Balance::BiasedRight(2) => {
                     let rhs = (*node.rhs).as_ref().expect("The rhs of the node must be Option::Some because the balance of the node is positive.");
-                    if rhs.get_balance() == -1 {
+                    if rhs.get_balance() == Balance::BiasedLeft(1) {
                         node.rhs.rotate_right();
                     }
                     self.rotate_left();
                 }
-                -2 => {
+                Balance::BiasedLeft(2) => {
                     let lhs = (*node.lhs).as_ref().expect("The lhs of the node must be Option::Some because the balance of the node is negative.");
-                    if lhs.get_balance() == 1 {
+                    if lhs.get_balance() == Balance::BiasedRight(2) {
                         node.lhs.rotate_left();
                     }
                     self.rotate_right();
@@ -267,8 +273,13 @@ impl<T: Ord> Node<T> {
     // Returns the difference of the children's heights.
     // If the right child is taller than left, then the return value is positive.
     // If the left child is taller than right, then the return value is negative.
-    fn get_balance(&self) -> i32 {
-        self.rhs.get_height() - self.lhs.get_height()
+    fn get_balance(&self) -> Balance {
+        let diff = self.rhs.get_height() - self.lhs.get_height();
+        match diff.cmp(&0) {
+            Ordering::Greater => Balance::BiasedRight(diff),
+            Ordering::Less => Balance::BiasedLeft(diff.abs()),
+            Ordering::Equal => Balance::NoBiase,
+        }
     }
 
     // Returns the mutable reference to the node containing the greatest value in the tree.
@@ -282,6 +293,7 @@ impl<T: Ord> Node<T> {
 
 #[cfg(test)]
 mod tests {
+    use super::Balance;
     use super::NodeOption;
     use super::AVL;
     use std::cmp::Ordering;
@@ -289,10 +301,12 @@ mod tests {
     const COMPLEX_TREE_SOURCE: [i32; 9] = [7, 5, 4, 2, 6, 11, 9, 10, 13];
 
     fn is_valid_balance<T: Ord>(node_opt: &NodeOption<T>) -> bool {
-        if let Some(ref node) = node_opt.node_opt {
-            return match node.get_balance().cmp(&1) {
-                Ordering::Greater => false,
-                _ => is_valid_balance(&node.lhs) && is_valid_balance(&node.rhs),
+        if let Some(node) = node_opt.as_ref() {
+            return match node.get_balance() {
+                Balance::BiasedLeft(1) | Balance::BiasedRight(1) | Balance::NoBiase => {
+                    is_valid_balance(&node.lhs) && is_valid_balance(&node.rhs)
+                }
+                _ => false,
             };
         }
 
@@ -300,14 +314,14 @@ mod tests {
     }
 
     fn is_valid_structure<T: Ord>(node_opt: &NodeOption<T>) -> bool {
-        if let Some(ref node) = node_opt.node_opt {
+        if let Some(node) = node_opt.as_ref() {
             if let Some(ref lhs) = node.lhs.node_opt {
                 if !((lhs.value < node.value) && is_valid_structure(&node.lhs)) {
                     return false;
                 }
             }
 
-            if let Some(ref rhs) = node.rhs.node_opt {
+            if let Some(rhs) = (*node.rhs).as_ref() {
                 if !((rhs.value > node.value) && is_valid_structure(&node.rhs)) {
                     return false;
                 }
