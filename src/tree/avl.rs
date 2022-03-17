@@ -148,16 +148,21 @@ impl<T: Ord> NodeOption<T> {
     // Removes the root of tree (self).
     // The value of the node and the given value are required to be same.
     fn remove_self(&mut self, value: &T) -> Option<T> {
-        let mut node = self
-            .take()
+        let node = self
+            .as_mut()
             .expect("The node is required not to be Option::None.");
 
         match ((*node.lhs).as_mut(), (*node.rhs).as_ref()) {
             (None, None) => {
-                self.set(node);
-                self.take().map(|n| n.value)
+                let node = self
+                    .take()
+                    .expect("The node is required not to be Option::None.");
+                Some(node.value)
             }
             (Some(_), None) => {
+                let mut node = self
+                    .take()
+                    .expect("The node is required not to be Option::None.");
                 if let Some(lhs) = node.lhs.take() {
                     self.set(lhs);
                 }
@@ -165,6 +170,9 @@ impl<T: Ord> NodeOption<T> {
                 Some(node.value)
             }
             (None, Some(_)) => {
+                let mut node = self
+                    .take()
+                    .expect("The node is required not to be Option::None.");
                 if let Some(rhs) = node.rhs.take() {
                     self.set(rhs);
                 }
@@ -176,7 +184,6 @@ impl<T: Ord> NodeOption<T> {
                 mem::swap(&mut node.value, &mut lhs_max_node.value);
 
                 let result = Self::remove(&mut node.lhs, value);
-                self.set(node);
                 self.rebalance();
                 result
             }
