@@ -8,13 +8,13 @@ pub struct AVL<T: Ord> {
 }
 
 struct NodeOption<T: Ord> {
-    node_opt: Option<Box<Node<T>>>,
+    node_opt: Option<Node<T>>,
 }
 
 struct Node<T: Ord> {
     value: T,
-    lhs: NodeOption<T>,
-    rhs: NodeOption<T>,
+    lhs: Box<NodeOption<T>>,
+    rhs: Box<NodeOption<T>>,
 }
 
 impl<T: Ord> AVL<T> {
@@ -66,7 +66,7 @@ impl<T: Ord> NodeOption<T> {
 
     fn from_node(node: Node<T>) -> Self {
         Self {
-            node_opt: Some(Box::new(node)),
+            node_opt: Some(node),
         }
     }
 
@@ -93,7 +93,7 @@ impl<T: Ord> NodeOption<T> {
                 }
                 Ordering::Equal => (),
             },
-            None => self.node_opt = Some(Box::new(Node::new(value))),
+            None => self.set(Node::new(value)),
         }
     }
 
@@ -127,14 +127,14 @@ impl<T: Ord> NodeOption<T> {
 
             match balance {
                 2 => {
-                    let rhs = node.rhs.as_ref().expect("The rhs of the node must be Option::Some because the balance of the node is positive.");
+                    let rhs = (*node.rhs).as_ref().expect("The rhs of the node must be Option::Some because the balance of the node is positive.");
                     if rhs.get_balance() == -1 {
                         node.rhs.rotate_right();
                     }
                     self.rotate_left();
                 }
                 -2 => {
-                    let lhs = node.lhs.as_ref().expect("The lhs of the node must be Option::Some because the balance of the node is negative.");
+                    let lhs = (*node.lhs).as_ref().expect("The lhs of the node must be Option::Some because the balance of the node is negative.");
                     if lhs.get_balance() == 1 {
                         node.lhs.rotate_left();
                     }
@@ -152,7 +152,7 @@ impl<T: Ord> NodeOption<T> {
             .take()
             .expect("The node is required not to be Option::None.");
 
-        match (node.lhs.as_mut(), node.rhs.as_ref()) {
+        match ((*node.lhs).as_mut(), (*node.rhs).as_ref()) {
             (None, None) => {
                 self.set(node);
                 self.take().map(|n| n.value)
@@ -199,7 +199,7 @@ impl<T: Ord> NodeOption<T> {
         }
         rhs.lhs.set(node);
 
-        *self = NodeOption::from_node(*rhs);
+        *self = NodeOption::from_node(rhs);
     }
 
     // The node and the left child are required to be Option::Some.
@@ -218,7 +218,7 @@ impl<T: Ord> NodeOption<T> {
         }
         lhs.rhs.set(node);
 
-        *self = NodeOption::from_node(*lhs);
+        *self = NodeOption::from_node(lhs);
     }
 
     // Returns the height of the given node.
@@ -231,19 +231,19 @@ impl<T: Ord> NodeOption<T> {
         }
     }
 
-    fn as_mut(&mut self) -> Option<&mut Box<Node<T>>> {
+    fn as_mut(&mut self) -> Option<&mut Node<T>> {
         self.node_opt.as_mut()
     }
 
-    fn as_ref(&self) -> Option<&Box<Node<T>>> {
+    fn as_ref(&self) -> Option<&Node<T>> {
         self.node_opt.as_ref()
     }
 
-    fn take(&mut self) -> Option<Box<Node<T>>> {
+    fn take(&mut self) -> Option<Node<T>> {
         self.node_opt.take()
     }
 
-    fn set(&mut self, node: Box<Node<T>>) {
+    fn set(&mut self, node: Node<T>) {
         self.node_opt = Some(node);
     }
 }
@@ -252,8 +252,8 @@ impl<T: Ord> Node<T> {
     fn new(value: T) -> Self {
         Self {
             value,
-            lhs: NodeOption::new(),
-            rhs: NodeOption::new(),
+            lhs: Box::new(NodeOption::new()),
+            rhs: Box::new(NodeOption::new()),
         }
     }
 
