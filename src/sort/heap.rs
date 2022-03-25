@@ -3,8 +3,8 @@ struct Heap<T: Ord> {
 }
 
 impl<T: Ord> Heap<T> {
-    pub fn new() -> Self {
-        Self { data: Vec::new() }
+    pub fn new(data: Vec<T>) -> Self {
+        Self { data }
     }
 
     pub fn sort(&mut self) {
