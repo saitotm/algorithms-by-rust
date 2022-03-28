@@ -21,32 +21,37 @@ fn select_pivot<T: Ord + Debug>(array: &[T]) -> Option<usize> {
     None
 }
 
-fn partition<T: Ord + Debug> (mut array: Vec<T>) -> (Vec<T>, Vec<T>) {
-    let mut pivot;
-    match select_pivot(&array) {
-        Some(p) => pivot = p,
-        None => return (Vec::new(), array),
-    }
 
+// Partition the array by the given pivot.
+// Return (Vec<T>, Vec<T>). The elements in the left vector are small than the element which is referred to by pivot_idx.
+// The elements in the right vector are equal to or more than the element which is referred by
+// pivot_idx.
+//
+// The element referred by pivot_idx must be greater than an element in the given array.
+fn partition<T: Ord + Debug> (mut array: Vec<T>, mut pivot_idx: usize) -> (Vec<T>, Vec<T>) {
     let mut left = 0;
     let mut right = array.len() - 1;
 
     loop {
-        while array[left] < array[pivot] {
+        while array[left] < array[pivot_idx] {
             left += 1;
         }
 
-        while array[right] >= array[pivot] {
+        while array[right] >= array[pivot_idx] {
+            if right == 0 {
+                panic!("pivot_idx");
+            } 
+
             right -= 1;
         }
 
         if left < right {
             array.swap(left, right);
 
-            if pivot == left {
-                pivot = right;
-            } else if pivot == right {
-                pivot = left;
+            if pivot_idx == left {
+                pivot_idx = right;
+            } else if pivot_idx == right {
+                pivot_idx = left;
             }
 
         } else {
@@ -57,35 +62,34 @@ fn partition<T: Ord + Debug> (mut array: Vec<T>) -> (Vec<T>, Vec<T>) {
 }
 
 fn sort<T: Ord + Debug>(array: Vec<T>) -> Vec<T> {
-    let (mut left, mut right) = partition(array);
+    match select_pivot(&array) {
+        None => array,
+        Some(pivot) => {
+            let (mut left, mut right) = partition(array, pivot);
 
-    if left.is_empty() {
-        return right;
+            if left.is_empty() {
+                return right;
+            }
+
+            left = sort(left);
+            right = sort(right);
+
+            left.append(&mut right);
+
+            left
+        },
     }
 
-    left = sort(left);
-    right = sort(right);
-
-    left.append(&mut right);
-
-    left
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn partition_one_number() {
-        let data = vec![3];
-
-        assert_eq!(partition(data), (vec![], vec![3]));
-    }
-
-    #[test]
     fn partition_numbers() {
         let data = vec![2, 9, 4, 10, 3];
 
-        assert_eq!(partition(data), (vec![2, 3, 4, ], vec![10, 9]));
+        assert_eq!(partition(data, 1), (vec![2, 3, 4], vec![10, 9]));
     }
 
 
@@ -93,7 +97,7 @@ mod tests {
     fn partition_continuaous_numbers() {
         let data = vec![5, 9, 7, 2, 3, 4, 1, 10, 6, 8];
 
-        assert_eq!(partition(data), (vec![5, 8, 7, 2, 3, 4, 1, 6], vec![10, 9]));
+        assert_eq!(partition(data, 1), (vec![5, 8, 7, 2, 3, 4, 1, 6], vec![10, 9]));
     }
 
     #[test]
