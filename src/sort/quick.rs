@@ -2,7 +2,7 @@ use std::{fmt::Debug, cmp::Ordering};
 
 
 // If any element in array is equal to any other elment, then return None. 
-// Otherwise, return the index refering to the element that is bigger than one in the array.
+// Otherwise, return the index refering to the element that is bigger than the an element in the array.
 fn select_pivot<T: Ord + Debug>(array: &[T]) -> Option<usize> {
     if array.is_empty() {
         return None;
@@ -133,5 +133,12 @@ mod tests {
         let data = vec![1, 3, 2, 4, 1, 3];
 
         assert_eq!(sort(data), vec![1, 1, 2, 3, 3, 4]);
+    }
+
+    #[test]
+    fn sort_same_numbers2() {
+        let data = vec![1, 3, 1, 4, 4, 1, 3, 2, 4, 1, 3, 1, 2, 3, 1, 3];
+
+        assert_eq!(sort(data), vec![1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4]);
     }
 }
