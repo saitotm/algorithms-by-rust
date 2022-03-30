@@ -1,5 +1,44 @@
-fn binary_search<T: Ord>(array: &[T], x: &T) -> Option<usize> {
-    unimplemented!();
+use std::{cmp::Ordering, fmt::Debug};
+
+fn is_sorted<T: Ord>(array: &[T]) -> bool {
+    for w in array.windows(2) {
+        if w[0] > w[1] {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn binary_search<T: Ord + Debug>(array: &[T], x: &T) -> Option<usize> {
+    assert!(is_sorted(array));
+
+    if array.is_empty() {
+        return None;
+    }
+
+    if array.len() == 1 {
+        return match x.cmp(&array[0]) {
+            Ordering::Equal => Some(0),
+            _ => None,
+        };
+    }
+
+    let mid = array.len() / 2;
+    debug_assert!(!&array[..mid].is_empty());
+    debug_assert!(!&array[mid..].is_empty());
+
+    let index = match x.cmp(&array[mid]) {
+        Ordering::Less => binary_search(&array[..mid], x),
+        Ordering::Greater => binary_search(&array[mid + 1..], x).map(|idx| idx + mid + 1),
+        Ordering::Equal => Some(mid),
+    };
+
+    debug_assert!(match index {
+        Some(idx) => &array[idx] == x,
+        _ => true,
+    });
+    index
 }
 
 #[cfg(test)]
