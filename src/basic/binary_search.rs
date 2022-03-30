@@ -17,6 +17,8 @@ fn binary_search<T: Ord + Debug>(array: &[T], x: &T) -> Option<usize> {
         return None;
     }
 
+    // The length of the given array must be greater than 1 after this if expression.  
+    // If not, recursive calls of this function will infinitely happen.
     if array.len() == 1 {
         return match x.cmp(&array[0]) {
             Ordering::Equal => Some(0),
@@ -25,9 +27,10 @@ fn binary_search<T: Ord + Debug>(array: &[T], x: &T) -> Option<usize> {
     }
 
     let mid = array.len() / 2;
-    debug_assert!(!&array[..mid].is_empty());
-    debug_assert!(!&array[mid..].is_empty());
 
+    // The number of recursive calls of this function is finite 
+    // because the lengths of the splited arrays (i.e. array[..mid] and array[mid + 1..]) 
+    // are less than that of the array before splited.
     let index = match x.cmp(&array[mid]) {
         Ordering::Less => binary_search(&array[..mid], x),
         Ordering::Greater => binary_search(&array[mid + 1..], x).map(|idx| idx + mid + 1),
