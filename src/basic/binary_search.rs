@@ -1,5 +1,5 @@
 fn binary_search<T: Ord>(array: &[T], x: &T) -> Option<usize> {
-    unimplemented!(); 
+    unimplemented!();
 }
 
 #[cfg(test)]
@@ -21,6 +21,25 @@ mod tests {
         for (i, val) in array.iter().enumerate() {
             assert_eq!(binary_search(&array, val), Some(i));
         }
+
+        assert_eq!(binary_search(&array, &-13), None);
+        assert_eq!(binary_search(&array, &9), None);
+        assert_eq!(binary_search(&array, &106), None);
+    }
+
+    #[test]
+    fn search_array_with_duplicate_elements() {
+        let array = vec![-12, -3, -3, 1, 3, 3, 3, 8, 8, 10, 21, 21, 105];
+
+        assert_eq!(binary_search(&array, &-12), Some(0));
+        assert_eq!(binary_search(&array, &1), Some(3));
+        assert_eq!(binary_search(&array, &10), Some(9));
+        assert_eq!(binary_search(&array, &105), Some(12));
+
+        assert!(matches!(binary_search(&array, &-3), Some(1..=2)));
+        assert!(matches!(binary_search(&array, &3), Some(4..=6)));
+        assert!(matches!(binary_search(&array, &8), Some(7..=8)));
+        assert!(matches!(binary_search(&array, &21), Some(10..=11)));
 
         assert_eq!(binary_search(&array, &-13), None);
         assert_eq!(binary_search(&array, &9), None);
