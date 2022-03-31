@@ -6,6 +6,12 @@ Implementations of basic algorithms by rust.
 - basic
   - Stack 
   - Queue
+  - Binary Search
+
+- sort
+  - Heap Sort
+  - Merge Sort
+  - Quiick Sort
 
 - tree
   - Binary Tree
