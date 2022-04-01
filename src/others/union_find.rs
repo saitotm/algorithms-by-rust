@@ -9,7 +9,7 @@ impl UnionFind {
             *idx = i;
         }
 
-        Self { parent_indexs }    
+        Self { parent_indexs }
     }
 
     fn root(&mut self, x: usize) -> usize {
